@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>수강생 이메일 관리</title>
+    <style>
+        body { font-family: system-ui, "Malgun Gothic", sans-serif; margin: 0; padding: 16px; color: #222; background: #fafafa; }
+        h1 { font-size: 20px; margin: 0 0 12px; }
+        h2 { font-size: 16px; margin: 24px 0 8px; }
+        .btn, button { padding: 6px 12px; border: 1px solid #999; border-radius: 6px; background: #fff;
+                       cursor: pointer; text-decoration: none; color: #222; font-size: 14px; }
+        button.primary { background: #1a73e8; color: #fff; border-color: #1a73e8; }
+        .msg { padding: 8px 12px; border-radius: 6px; margin: 8px 0; }
+        .msg.ok { background: #e6f4ea; color: #1e6b34; }
+        .msg.err { background: #fde7e9; color: #a4262c; }
+        .msg ul { margin: 4px 0 0; padding-left: 18px; }
+        .box { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 12px 14px; max-width: 760px; }
+        .hint { color: #666; font-size: 13px; margin: 0 0 8px; line-height: 1.5; }
+        textarea { width: 100%; box-sizing: border-box; font-family: ui-monospace, monospace; font-size: 13px; }
+        table { border-collapse: collapse; background: #fff; }
+        th, td { border: 1px solid #ddd; padding: 4px 8px; font-size: 14px; }
+        th { background: #f1f3f4; }
+        td.name small { color: #888; margin-left: 4px; }
+        td.mid { text-align: center; }
+        input[type=email] { width: 22em; }
+        .on { color: #1e6b34; } .off { color: #999; }
+    </style>
+</head>
+<body>
+<div style="display:flex; justify-content:space-between; align-items:center;">
+    <h1>수강생 이메일 관리</h1>
+    <a class="btn" th:href="@{/admin/attendance}">출결 입력으로</a>
+</div>
+
+<p class="msg ok" th:if="${message}" th:text="${message}"></p>
+<div class="msg err" th:if="${errors}">
+    저장하지 않았습니다. 아래 내용을 고친 뒤 다시 시도해 주세요.
+    <ul><li th:each="e : ${errors}" th:text="${e}">오류</li></ul>
+</div>
+
+<h2>붙여넣어 한꺼번에 등록</h2>
+<form class="box" method="post" th:action="@{/admin/students/paste}">
+    <p class="hint">엑셀에서 <b>ID, 이름, 이메일</b> 열을 복사해서 붙여넣으세요. 줄마다 첫 값은 수강생 ID, 마지막 값은 이메일로 읽고
+        이름은 사용하지 않습니다. 첫 줄이 제목이면 건너뜁니다. 문제가 하나라도 있으면 아무것도 저장하지 않습니다.</p>
+    <textarea name="text" rows="7" maxlength="20000" placeholder="P001, hong@example.com"></textarea>
+    <p><button type="submit" class="primary">붙여넣은 내용 저장</button></p>
+</form>
+
+<h2>표에서 하나씩 수정</h2>
+<p class="hint">이메일 칸을 비우고 저장하면 이메일이 지워집니다. 이메일을 바꾸면 그 수강생의 로그인 이력과 쓰지 않은 로그인 링크가 초기화됩니다.</p>
+<form method="post" th:action="@{/admin/students/save}">
+    <table>
+        <thead><tr><th>반</th><th>이름</th><th>이메일</th><th>로그인 이력</th></tr></thead>
+        <tbody>
+        <tr th:each="r : ${rows}">
+            <td th:text="${r.className()}">항만반</td>
+            <td class="name"><span th:text="${r.name()}">홍길동</span><small th:text="${r.studentId()}">P001</small>
+                <input type="hidden" name="studentId" th:value="${r.studentId()}"></td>
+            <td><input type="email" maxlength="254" th:name="'email_' + ${r.studentId()}" th:value="${r.email()}"></td>
+            <td class="mid"><span th:if="${r.verified()}" class="on">있음</span><span th:unless="${r.verified()}" class="off">없음</span></td>
+        </tr>
+        </tbody>
+    </table>
+    <p><button type="submit" class="primary">표의 변경 내용 저장</button></p>
+</form>
+</body>
+</html>

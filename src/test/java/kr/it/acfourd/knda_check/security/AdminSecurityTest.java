@@ -1,19 +1,19 @@
 package kr.it.acfourd.knda_check.security;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.springframework.http.MediaType;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -83,5 +83,13 @@ class AdminSecurityTest {
                 .param("password", "this-is-not-the-password"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login?error"));
+    }
+
+        @Test
+    void 수강생_이메일_관리_화면도_관리자만_열_수_있다() throws Exception {
+        mvc.perform(get("/admin/students").with(user("P001").roles("STUDENT")))
+                .andExpect(status().isForbidden());
+        mvc.perform(get("/admin/students").with(user("tester").roles("ADMIN")))
+                .andExpect(status().isOk());
     }
 }
