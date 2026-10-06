@@ -32,7 +32,10 @@
     </style>
 </head>
 <body>
-<h1>일일 출결 입력</h1>
+<div style="display:flex; justify-content:space-between; align-items:center;">
+    <h1>일일 출결 입력</h1>
+    <form class="inline" method="post" th:action="@{/logout}"><button type="submit">로그아웃</button></form>
+</div>
 
 <nav class="tabs">
     <a th:href="@{/admin/attendance(classCode='PORT', date=${dateIso})}"
