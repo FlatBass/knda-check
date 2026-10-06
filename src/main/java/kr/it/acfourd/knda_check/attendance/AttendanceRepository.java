@@ -15,4 +15,12 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
             order by a.trainingDay.trainingDate
             """)
     List<Attendance> findAllByStudentId(@Param("studentId") String studentId);
+
+    /** 한 훈련일의 출결 전체 (수강생 정보 포함) */
+    @Query("""
+            select a from Attendance a
+            join fetch a.student
+            where a.trainingDay.id = :trainingDayId
+            """)
+    List<Attendance> findAllByTrainingDayId(@Param("trainingDayId") Long trainingDayId);
 }
