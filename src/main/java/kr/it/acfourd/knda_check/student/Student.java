@@ -73,4 +73,10 @@ public class Student extends BaseTimeEntity {
     public void markEmailVerified(Instant at) {
         this.emailVerifiedAt = at;
     }
+
+    /** 이메일을 바꾼다(null이면 지움). 새 이메일은 아직 인증되지 않은 것으로 되돌린다. */
+    public void changeEmail(String email) {
+        this.email = email;
+        this.emailVerifiedAt = null;
+    }
 }
