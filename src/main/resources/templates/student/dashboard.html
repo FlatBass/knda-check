@@ -47,7 +47,10 @@
     </style>
 </head>
 <body>
-<h1 th:text="${view.studentName()} + ' 님의 출석 현황'">홍길동 님의 출석 현황</h1>
+<div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+    <h1 th:text="${view.studentName()} + ' 님의 출석 현황'">홍길동 님의 출석 현황</h1>
+    <form th:if="${showLogout}" method="post" th:action="@{/logout}"><button type="submit">로그아웃</button></form>
+</div>
 <p class="sub">
     <span th:text="${view.className()}">항만반</span>
     <span th:if="${view.asOfText()}" th:text="'· ' + ${view.asOfText()} + '까지 확정된 출결 기준'"></span>

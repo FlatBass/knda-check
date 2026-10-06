@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer">
+    <title>로그인 확인</title>
+    <style>
+        body { font-family: system-ui, "Malgun Gothic", sans-serif; background: #f5f6f8; margin: 0; padding: 16px; }
+        .box { max-width: 360px; margin: 14vh auto 0; background: #fff; padding: 24px; border-radius: 12px;
+               box-shadow: 0 1px 3px rgba(0,0,0,.12); text-align: center; }
+        h1 { font-size: 18px; margin: 0 0 8px; }
+        p { font-size: 14px; color: #555; }
+        button { width: 100%; margin-top: 12px; padding: 12px; border: 0; border-radius: 6px; background: #1a73e8;
+                 color: #fff; font-size: 16px; cursor: pointer; }
+        a { color: #1a73e8; }
+    </style>
+</head>
+<body>
+<div class="box">
+    <h1>로그인 확인</h1>
+    <th:block th:if="${token != ''}">
+        <p>아래 버튼을 누르면 로그인됩니다.</p>
+        <form method="post" th:action="@{/auth/verify}">
+            <input type="hidden" name="token" th:value="${token}">
+            <button type="submit">로그인 계속하기</button>
+        </form>
+    </th:block>
+    <th:block th:if="${token == ''}">
+        <p>잘못된 링크입니다.</p>
+        <a th:href="@{/student/login}">로그인 링크 다시 받기</a>
+    </th:block>
+</div>
+</body>
+</html>
