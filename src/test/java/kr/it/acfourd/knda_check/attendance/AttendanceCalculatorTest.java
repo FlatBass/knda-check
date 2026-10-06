@@ -129,6 +129,25 @@ class AttendanceCalculatorTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
+    @Test
+    void 기준_충족에_필요한_일수와_남은_일수() {
+        var r = new AttendanceResult(32, 30, 6); // 최종 인정 28일
+
+        assertThat(AttendanceResult.requiredCreditedDays(63)).isEqualTo(51);
+        assertThat(AttendanceResult.requiredCreditedDays(17)).isEqualTo(14);
+        assertThat(r.creditedDaysStillNeeded(63)).isEqualTo(23);
+        assertThat(r.remainingTrainingDays(63)).isEqualTo(31);
+    }
+
+    @Test
+    void 이미_충족했거나_도달_불가능한_경우() {
+        assertThat(new AttendanceResult(55, 53, 0).creditedDaysStillNeeded(63)).isNegative();
+
+        var r = new AttendanceResult(60, 40, 0);
+        assertThat(r.creditedDaysStillNeeded(63)).isEqualTo(11);
+        assertThat(r.remainingTrainingDays(63)).isEqualTo(3); // 필요 11일 > 남은 3일
+    }
+
     // ---- 테스트용 도우미 ----
 
     private static final LocalDate START = LocalDate.of(2026, 8, 18);

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>개발용 수강생 선택</title>
+    <style>
+        body { font-family: system-ui, "Malgun Gothic", sans-serif; padding: 16px; }
+        .warn { background: #fff3cd; padding: 8px 12px; border-radius: 6px; }
+        li { margin: 4px 0; }
+    </style>
+</head>
+<body>
+<h1>개발용 수강생 선택</h1>
+<p class="warn">개발 전용 화면입니다. 실제 서비스에서는 로그인한 본인의 화면만 열립니다.</p>
+<h2>항만반</h2>
+<ul><li th:each="s : ${port}"><a th:href="@{/dev/my(studentId=${s.id})}" th:text="${s.name} + ' (' + ${s.id} + ')'">이름</a></li></ul>
+<h2>AI반</h2>
+<ul><li th:each="s : ${ai}"><a th:href="@{/dev/my(studentId=${s.id})}" th:text="${s.name} + ' (' + ${s.id} + ')'">이름</a></li></ul>
+</body>
+</html>

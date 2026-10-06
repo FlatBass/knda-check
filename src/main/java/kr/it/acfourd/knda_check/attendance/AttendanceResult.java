@@ -59,4 +59,19 @@ public record AttendanceResult(
         return 3 - (convertibleEvents % 3);
     }
 
+    /** 80% 기준을 채우는 데 필요한 최종 인정 출석일수 = ceil(T x 0.8) */
+    public static int requiredCreditedDays(int totalRequiredDays) {
+        return (totalRequiredDays * 4 + 4) / 5;
+    }
+
+    /** 앞으로 더 필요한 최종 인정 출석일수. 0 이하이면 이미 충족. */
+    public int creditedDaysStillNeeded(int totalRequiredDays) {
+        return requiredCreditedDays(totalRequiredDays) - finalCreditedDays();
+    }
+
+    /** 아직 확정되지 않은 남은 훈련일수 */
+    public int remainingTrainingDays(int totalRequiredDays) {
+        return Math.max(0, totalRequiredDays - confirmedDays);
+    }
+
 }
