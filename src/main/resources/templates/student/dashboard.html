@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>내 출석 현황</title>
+    <style>
+        body { font-family: system-ui, "Malgun Gothic", sans-serif; margin: 0 auto; padding: 16px; background: #f5f6f8;
+               color: #222; max-width: 720px; line-height: 1.5; }
+        h1 { font-size: 20px; margin: 0 0 4px; }
+        h2 { font-size: 16px; margin: 24px 0 8px; }
+        .sub { color: #555; margin: 0 0 8px; font-size: 14px; }
+        .sub2 { font-size: 12px; color: #888; margin-bottom: 2px; }
+        .notice { font-size: 12px; color: #666; background: #fff; border-left: 3px solid #bbb; padding: 8px 10px; margin: 8px 0 16px; }
+        .stack { display: grid; gap: 10px; }
+        .card { background: #fff; border-radius: 10px; padding: 14px 16px; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+        .label { font-size: 13px; color: #666; }
+        .mid { font-size: 20px; font-weight: 700; margin: 4px 0; }
+        .bar { display: flex; height: 14px; background: #e3e6ea; border-radius: 7px; overflow: hidden; margin: 10px 0 6px; }
+        .bar .ok { background: #34a853; }
+        .bar .ng { background: #ea4335; }
+        .legend { font-size: 12px; color: #555; }
+        .dot { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin: 0 3px 0 8px; vertical-align: baseline; }
+        .dot:first-child { margin-left: 0; }
+        .dot.ok { background: #34a853; } .dot.ng { background: #ea4335; } .dot.rest { background: #e3e6ea; }
+        .goal { margin-top: 12px; padding: 10px 12px; background: #f1f6ff; border-radius: 8px; }
+        .goal .line { font-size: 13px; color: #444; }
+        .goal .answer { font-size: 17px; margin-top: 6px; }
+        .goal.good { background: #e6f4ea; }
+        .goal.bad { background: #fde7e9; }
+        .meta { margin-top: 12px; padding-top: 8px; border-top: 1px solid #eee; font-size: 13px; color: #555; }
+        .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 13px; font-weight: 600; }
+        .badge.ok { background: #e6f4ea; color: #1e6b34; }
+        .badge.ng { background: #fde7e9; color: #a4262c; }
+        .warn { color: #a4262c; font-weight: 600; }
+        .note { font-size: 12px; color: #777; margin-top: 4px; }
+        .wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; }
+        th, td { padding: 7px 8px; border-bottom: 1px solid #eee; text-align: center; }
+        th { background: #f1f3f4; white-space: nowrap; }
+        td.left { text-align: left; }
+        tr.cur td { background: #f1f6ff; }
+        details { background: #fff; border-radius: 10px; padding: 10px 16px; margin-top: 10px; font-size: 13px; }
+        summary { cursor: pointer; color: #444; }
+        details ul { margin: 8px 0 0; padding-left: 18px; color: #444; }
+        .empty { background: #fff; padding: 24px; border-radius: 10px; text-align: center; color: #555; }
+    </style>
+</head>
+<body>
+<h1 th:text="${view.studentName()} + ' 님의 출석 현황'">홍길동 님의 출석 현황</h1>
+<p class="sub">
+    <span th:text="${view.className()}">항만반</span>
+    <span th:if="${view.asOfText()}" th:text="'· ' + ${view.asOfText()} + '까지 확정된 출결 기준'"></span>
+</p>
+<p class="notice">본 화면은 운영자가 입력한 출결을 바탕으로 제공하는 참고용 현황입니다.
+    실제 출결 확정 및 수료 여부는 공식 기준과 최종 확인 결과에 따릅니다.</p>
+
+<p class="empty" th:unless="${view.hasConfirmed()}">아직 확정된 출결이 없습니다. 출결이 확정되면 이곳에 표시됩니다.</p>
+
+<th:block th:if="${view.hasConfirmed()}" th:with="o=${view.overall()}, s=${view.sickLeave()}">
+
+    <div class="stack">
+        <!-- 1. 전체 과정 -->
+        <th:block th:replace="~{student/fragments :: progress('전체 과정 진행 현황', '전체 소정훈련일 기준', ${o}, ${view.showJudgement()})}"></th:block>
+
+        <!-- 2. 현재 단위기간 (이 기간의 출결만으로 따로 계산) -->
+        <th:block th:if="${view.current() != null}"
+                  th:replace="~{student/fragments :: progress(${view.current().name() + ' 단위기간 진행 현황'}, ${view.current().rangeText() + ' · 이 기간의 출결만으로 계산'}, ${view.current().stats()}, ${view.showJudgement()})}"></th:block>
+
+        <!-- 3. 병결 -->
+        <section class="card">
+            <div class="label">병결 사용 (전체 과정 기준)</div>
+            <div class="mid"><span th:text="${s.used()}">0</span> / <span th:text="${s.limit()}">6</span>일</div>
+            <div th:if="${s.remaining() >= 0}">잔여 <b th:text="${s.remaining()}">6</b>일</div>
+            <div class="warn" th:unless="${s.remaining() >= 0}">한도 초과 <b th:text="${-s.remaining()}">1</b>일</div>
+        </section>
+    </div>
+
+    <h2>단위기간별 현황</h2>
+    <div class="wrap">
+        <table>
+            <thead>
+            <tr><th>기간</th><th>확정 / 전체</th><th>현재 출석률</th><th>80% 기준</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="p : ${view.periods()}"
+                th:classappend="${view.current() != null and view.current().id() == p.id()} ? 'cur'">
+                <td class="left"><b th:text="${p.name()}">1차</b><br><small th:text="${p.rangeText()}">8/18 ~ 9/17</small></td>
+                <td><span th:text="${p.stats().confirmedDays()}">0</span> / <span th:text="${p.stats().requiredDays()}">0</span>일
+                    <br><small th:text="${p.status()}">진행 중</small></td>
+                <td th:text="${p.stats().ratePercent()} ?: '-'">-</td>
+                <td>
+                    <th:block th:if="${p.stats().confirmedDays() == 0 or !view.showJudgement()}">-</th:block>
+                    <th:block th:if="${p.stats().confirmedDays() > 0 and view.showJudgement()}">
+                        <th:block th:if="${p.completed()}">
+                            <span class="badge ok" th:if="${p.stats().meetsThreshold()}">✔ 80% 이상</span>
+                            <span class="badge ng" th:unless="${p.stats().meetsThreshold()}">✖ 80% 미만</span>
+                        </th:block>
+                        <th:block th:unless="${p.completed()}">
+                            <span th:if="${p.stats().achieved()}">이미 기준 충족</span>
+                            <span class="warn" th:if="${p.stats().unreachable()}">남은 날 모두 출석해도 미달</span>
+                            <span th:if="${!p.stats().achieved() and !p.stats().unreachable()}"
+                                  th:text="'남은 ' + ${p.stats().remainingDays()} + '일 중 ' + ${p.stats().neededDays()} + '일 이상 출석'">
+                                남은 8일 중 6일 이상 출석</span>
+                        </th:block>
+                    </th:block>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <details>
+        <summary>전체 기간 계산 자세히 보기</summary>
+        <ul>
+            <li>확정된 훈련일수: <b th:text="${o.confirmedDays()}">32</b>일</li>
+            <li>출석으로 인정된 날 (공가·인정 병결 포함): <b th:text="${o.creditedDays()}">30</b>일</li>
+            <li>지각·조퇴·외출 환산: <b th:text="${o.convertibleEvents()}">6</b>회 → 결석
+                <b th:text="${o.extraAbsences()}">2</b>일 (3회 = 1일, 이미 결석 처리된 날의 기록은 제외)</li>
+            <li>최종 인정 출석일수: <b th:text="${o.creditedDays()}">30</b> − <b th:text="${o.extraAbsences()}">2</b> =
+                <b th:text="${o.finalCreditedDays()}">28</b>일</li>
+            <li>지금까지의 출석률: <b th:text="${o.finalCreditedDays()}">28</b> ÷ <b th:text="${o.confirmedDays()}">32</b> =
+                <b th:text="${o.ratePercent()} ?: '-'">87.50%</b></li>
+        </ul>
+    </details>
+
+    <h2>일별 상세</h2>
+    <div class="wrap">
+        <table>
+            <thead><tr><th>날짜</th><th>결과</th><th>지각·조퇴·외출</th><th>사유</th></tr></thead>
+            <tbody>
+            <tr th:each="d : ${view.days()}">
+                <td class="left" th:text="${d.dateText()}">8월 18일 (화)</td>
+                <td th:text="${d.label()}">출석</td>
+                <td>
+                    <span th:if="${d.late() > 0}" th:text="'지각 ' + ${d.late()}"></span>
+                    <span th:if="${d.early() > 0}" th:text="'조퇴 ' + ${d.early()}"></span>
+                    <span th:if="${d.outing() > 0}" th:text="'외출 ' + ${d.outing()}"></span>
+                    <small th:if="${d.eventsExcluded()}" class="note">결석 처리일이라 환산에서 제외</small>
+                </td>
+                <td class="left" th:text="${d.note()}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</th:block>
+</body>
+</html>
