@@ -140,6 +140,29 @@ class AdminAttendanceServiceTest {
         assertThat(row.late()).isEqualTo(1);
     }
 
+    @Test
+    void 이전_다음_훈련일은_주말을_건너뛴다() {
+        var nav = service.navigate(ClassCode.PORT, LocalDate.of(2026, 8, 21)); // 금요일
+
+        assertThat(nav.prev()).isEqualTo(LocalDate.of(2026, 8, 20));
+        assertThat(nav.next()).isEqualTo(LocalDate.of(2026, 8, 24)); // 월요일
+    }
+
+    @Test
+    void 첫_훈련일에는_이전이_없고_마지막_훈련일에는_다음이_없다() {
+        assertThat(service.navigate(ClassCode.PORT, LocalDate.of(2026, 8, 18)).prev()).isNull();
+        assertThat(service.navigate(ClassCode.PORT, emptyDay()).next()).isNull();
+    }
+
+    @Test
+    void 훈련일이_아닌_날은_가장_가까운_이전_훈련일로_이동한다() {
+        assertThat(service.isTrainingDay(ClassCode.PORT, LocalDate.of(2026, 8, 22))).isFalse();
+        assertThat(service.nearestTrainingDay(ClassCode.PORT, LocalDate.of(2026, 8, 22)))
+                .isEqualTo(LocalDate.of(2026, 8, 21));
+        assertThat(service.nearestTrainingDay(ClassCode.PORT, LocalDate.of(2026, 8, 10)))
+                .isEqualTo(LocalDate.of(2026, 8, 18));
+    }
+
     // ---- 도우미 ----
 
     /** 입력이 아직 없는 항만반의 마지막 훈련일 */
