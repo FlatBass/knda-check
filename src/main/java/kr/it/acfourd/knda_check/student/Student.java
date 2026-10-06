@@ -1,12 +1,14 @@
 package kr.it.acfourd.knda_check.student;
 
+import java.time.Instant;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.Instant;
+
 import kr.it.acfourd.knda_check.common.BaseTimeEntity;
 import kr.it.acfourd.knda_check.common.ClassCode;
 
@@ -66,5 +68,9 @@ public class Student extends BaseTimeEntity {
 
     public Instant getEmailVerifiedAt() {
         return emailVerifiedAt;
+    }
+
+    public void markEmailVerified(Instant at) {
+        this.emailVerifiedAt = at;
     }
 }

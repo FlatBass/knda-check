@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>출석 현황 로그인</title>
+    <style>
+        body { font-family: system-ui, "Malgun Gothic", sans-serif; background: #f5f6f8; margin: 0; padding: 16px; }
+        .box { max-width: 360px; margin: 10vh auto 0; background: #fff; padding: 24px; border-radius: 12px;
+               box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+        h1 { font-size: 18px; margin: 0 0 6px; }
+        .desc { font-size: 13px; color: #666; margin: 0 0 16px; }
+        label { display: block; font-size: 13px; color: #555; margin: 12px 0 4px; }
+        input { width: 100%; box-sizing: border-box; padding: 9px 10px; border: 1px solid #bbb; border-radius: 6px; font-size: 15px; }
+        button { width: 100%; margin-top: 18px; padding: 10px; border: 0; border-radius: 6px; background: #1a73e8;
+                 color: #fff; font-size: 15px; cursor: pointer; }
+        .msg { padding: 8px 10px; border-radius: 6px; font-size: 13px; margin-bottom: 8px; line-height: 1.5; }
+        .err { background: #fde7e9; color: #a4262c; }
+        .info { background: #e8f0fe; color: #174ea6; }
+    </style>
+</head>
+<body>
+<div class="box">
+    <h1>내 출석 현황 보기</h1>
+    <p class="desc">운영매니저에게 등록한 이메일을 입력하면 로그인 링크를 보내드려요.</p>
+
+    <p class="msg info" th:if="${param.sent}">입력하신 이메일이 등록되어 있다면 로그인 링크를 보냈습니다.
+        메일함(스팸함 포함)을 확인해 주세요. 링크는 10분 동안, 한 번만 사용할 수 있습니다.
+        메일이 오지 않으면 운영매니저에게 문의해 주세요.</p>
+    <p class="msg err" th:if="${param.invalid}">링크가 만료되었거나 이미 사용되었습니다. 로그인 링크를 다시 요청해 주세요.</p>
+    <p class="msg info" th:if="${param.logout}">로그아웃되었습니다.</p>
+
+    <form method="post" th:action="@{/student/login}">
+        <label for="email">이메일</label>
+        <input id="email" name="email" type="email" maxlength="254" autocomplete="email" autofocus required>
+        <button type="submit">로그인 링크 받기</button>
+    </form>
+</div>
+</body>
+</html>
