@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>출결 입력</title>
+    <style>
+        body { font-family: system-ui, "Malgun Gothic", sans-serif; margin: 0; padding: 16px; color: #222; background: #fafafa; }
+        h1 { font-size: 20px; margin: 0 0 12px; }
+        .tabs a { display: inline-block; padding: 6px 14px; border: 1px solid #bbb; border-radius: 6px 6px 0 0;
+                  text-decoration: none; color: #333; background: #eee; margin-right: 2px; }
+        .tabs a.active { background: #fff; font-weight: 700; border-bottom-color: #fff; }
+        .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
+        .btn, button { padding: 6px 12px; border: 1px solid #999; border-radius: 6px; background: #fff;
+                       cursor: pointer; text-decoration: none; color: #222; font-size: 14px; }
+        .btn.disabled { color: #aaa; border-color: #ddd; cursor: default; }
+        button.primary { background: #1a73e8; color: #fff; border-color: #1a73e8; }
+        form.inline { display: inline; margin: 0; }
+        .msg { padding: 8px 12px; border-radius: 6px; margin: 8px 0; }
+        .msg.ok { background: #e6f4ea; color: #1e6b34; }
+        .msg.err { background: #fde7e9; color: #a4262c; }
+        table { border-collapse: collapse; background: #fff; }
+        th, td { border: 1px solid #ddd; padding: 4px 8px; text-align: center; font-size: 14px; }
+        th { background: #f1f3f4; position: sticky; top: 0; }
+        td.name { text-align: left; white-space: nowrap; }
+        td.name small { color: #888; margin-left: 4px; }
+        tr.unconfirmed { background: #fffbe6; }
+        input[type=number] { width: 3.2em; }
+        input[type=text] { width: 12em; }
+        .summary { margin-left: auto; font-weight: 600; }
+        .hint { color: #666; font-size: 13px; margin-top: 8px; }
+    </style>
+</head>
+<body>
+<h1>일일 출결 입력</h1>
+
+<nav class="tabs">
+    <a th:href="@{/admin/attendance(classCode='PORT', date=${dateIso})}"
+       th:classappend="${entry.classCode().name() == 'PORT'} ? 'active'">항만반</a>
+    <a th:href="@{/admin/attendance(classCode='AI', date=${dateIso})}"
+       th:classappend="${entry.classCode().name() == 'AI'} ? 'active'">AI반</a>
+</nav>
+
+<div class="bar">
+    <a th:if="${prevIso}" class="btn"
+       th:href="@{/admin/attendance(classCode=${entry.classCode().name()}, date=${prevIso})}">◀ 이전 훈련일</a>
+    <span th:unless="${prevIso}" class="btn disabled">◀ 이전 훈련일</span>
+
+    <form class="inline" method="get" th:action="@{/admin/attendance}">
+        <input type="hidden" name="classCode" th:value="${entry.classCode().name()}">
+        <input type="date" name="date" th:value="${dateIso}" onchange="this.form.submit()">
+    </form>
+    <strong th:text="${dateLabel}">2026년 8월 18일 (화)</strong>
+
+    <a th:if="${nextIso}" class="btn"
+       th:href="@{/admin/attendance(classCode=${entry.classCode().name()}, date=${nextIso})}">다음 훈련일 ▶</a>
+    <span th:unless="${nextIso}" class="btn disabled">다음 훈련일 ▶</span>
+
+    <span class="summary">확정 <span th:text="${confirmedCount}">0</span> / <span th:text="${total}">0</span>명</span>
+</div>
+
+<p class="msg ok" th:if="${message}" th:text="${message}"></p>
+<p class="msg err" th:if="${error}" th:text="${error}"></p>
+
+<form class="inline" method="post" th:action="@{/admin/attendance/fill}">
+    <input type="hidden" name="classCode" th:value="${entry.classCode().name()}">
+    <input type="hidden" name="date" th:value="${dateIso}">
+    <button type="submit"
+            th:text="${entry.classCode().name() == 'PORT'} ? '항만반 전원 출석' : 'AI반 전원 출석'">전원 출석</button>
+</form>
+<p class="hint">순서: 전원 출석 → 예외만 수정 → 전체 확정 체크 → 저장. 노란 줄은 아직 확정되지 않은 행입니다.</p>
+
+<form id="day-form" method="post" th:action="@{/admin/attendance/save}">
+    <input type="hidden" name="classCode" th:value="${entry.classCode().name()}">
+    <input type="hidden" name="date" th:value="${dateIso}">
+
+    <table>
+        <thead>
+        <tr>
+            <th>이름</th><th>출석</th><th>인정결석</th><th>지각</th><th>조퇴</th><th>외출</th>
+            <th>병결</th><th>확정</th><th>공개 사유</th><th>관리자 메모</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="row : ${entry.rows()}" th:classappend="${!row.confirmed()} ? 'unconfirmed'">
+            <td class="name">
+                <span th:text="${row.studentName()}">홍길동</span><small th:text="${row.studentId()}">P001</small>
+                <input type="hidden" name="studentId" th:value="${row.studentId()}">
+            </td>
+            <td><input type="checkbox" class="cb-credit" th:name="'credit_' + ${row.studentId()}" th:checked="${row.credit()}"></td>
+            <td><input type="checkbox" class="cb-excused" th:name="'excused_' + ${row.studentId()}" th:checked="${row.excused()}"></td>
+            <td><input type="number" min="0" max="9" th:name="'late_' + ${row.studentId()}" th:value="${row.late()}"></td>
+            <td><input type="number" min="0" max="9" th:name="'early_' + ${row.studentId()}" th:value="${row.early()}"></td>
+            <td><input type="number" min="0" max="9" th:name="'outing_' + ${row.studentId()}" th:value="${row.outing()}"></td>
+            <td><input type="checkbox" class="cb-sick" th:name="'sick_' + ${row.studentId()}" th:checked="${row.sick()}"></td>
+            <td><input type="checkbox" class="cb-confirmed" th:name="'confirmed_' + ${row.studentId()}" th:checked="${row.confirmed()}"></td>
+            <td><input type="text" maxlength="200" th:name="'publicNote_' + ${row.studentId()}" th:value="${row.publicNote()}"></td>
+            <td><input type="text" maxlength="200" th:name="'internalNote_' + ${row.studentId()}" th:value="${row.internalNote()}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="bar">
+        <button type="button" id="check-all-confirmed">전체 확정 체크</button>
+        <button type="submit" name="action" value="save">저장</button>
+        <button type="submit" name="action" value="saveNext" class="primary">저장 후 다음 훈련일 ▶</button>
+    </div>
+</form>
+
+<script>
+    (function () {
+        var form = document.getElementById('day-form');
+        var dirty = false;
+
+        form.addEventListener('change', function () { dirty = true; });
+        form.addEventListener('submit', function () { dirty = false; });
+        window.addEventListener('beforeunload', function (e) { if (dirty) { e.preventDefault(); } });
+
+        // 출석·인정결석·병결이 서로 어긋나지 않게 맞춘다 (서버도 같은 규칙을 검증한다)
+        form.addEventListener('change', function (e) {
+            var t = e.target;
+            var row = t.closest('tr');
+            if (!row || t.type !== 'checkbox') { return; }
+            var credit = row.querySelector('.cb-credit');
+            var excused = row.querySelector('.cb-excused');
+            var sick = row.querySelector('.cb-sick');
+            if (t === credit && credit.checked) { excused.checked = false; sick.checked = false; }
+            if (t === excused) {
+                if (excused.checked) { credit.checked = false; } else { sick.checked = false; }
+            }
+            if (t === sick && sick.checked) { excused.checked = true; credit.checked = false; }
+        });
+
+        document.getElementById('check-all-confirmed').addEventListener('click', function () {
+            form.querySelectorAll('.cb-confirmed').forEach(function (cb) { cb.checked = true; });
+            dirty = true;
+        });
+    })();
+</script>
+</body>
+</html>

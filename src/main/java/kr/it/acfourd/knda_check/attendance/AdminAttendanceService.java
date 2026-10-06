@@ -108,6 +108,35 @@ public class AdminAttendanceService {
         }
     }
 
+    /** 이전·다음 훈련일. 없으면 null. */
+    public record DayNav(LocalDate prev, LocalDate next) {
+    }
+
+    public DayNav navigate(ClassCode classCode, LocalDate date) {
+        LocalDate prev = trainingDays
+                .findFirstByClassCodeAndTrainingDayTrueAndTrainingDateLessThanOrderByTrainingDateDesc(classCode, date)
+                .map(TrainingDay::getTrainingDate).orElse(null);
+        LocalDate next = trainingDays
+                .findFirstByClassCodeAndTrainingDayTrueAndTrainingDateGreaterThanOrderByTrainingDateAsc(classCode, date)
+                .map(TrainingDay::getTrainingDate).orElse(null);
+        return new DayNav(prev, next);
+    }
+
+    public boolean isTrainingDay(ClassCode classCode, LocalDate date) {
+        return trainingDays.findByClassCodeAndTrainingDate(classCode, date)
+                .map(TrainingDay::isTrainingDay).orElse(false);
+    }
+
+    /** 주어진 날짜 이전(당일 포함)의 가장 가까운 훈련일. 없으면 첫 훈련일. */
+    public LocalDate nearestTrainingDay(ClassCode classCode, LocalDate date) {
+        return trainingDays
+                .findFirstByClassCodeAndTrainingDayTrueAndTrainingDateLessThanEqualOrderByTrainingDateDesc(classCode,
+                        date)
+                .or(() -> trainingDays.findFirstByClassCodeAndTrainingDayTrueOrderByTrainingDate(classCode))
+                .map(TrainingDay::getTrainingDate)
+                .orElseThrow(() -> new IllegalStateException("훈련일정이 없습니다: " + classCode));
+    }
+
     private TrainingDay requireTrainingDay(ClassCode classCode, LocalDate date) {
         return trainingDays.findByClassCodeAndTrainingDate(classCode, date)
                 .filter(TrainingDay::isTrainingDay)
