@@ -48,3 +48,4 @@ application-local.*
 *.xlsx
 *.xls
 /data/
+config/cloudrun-env.yaml
