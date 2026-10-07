@@ -1,9 +1,10 @@
 package kr.it.acfourd.knda_check.auth;
 
 import java.time.Duration;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 /**
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Component;
  * 개발 모드(app.dev-mode=true)에서는 LoggingLoginMailSender가 대신 쓰인다.
  */
 @Component
-@ConditionalOnProperty(name = "app.dev-mode", havingValue = "false", matchIfMissing = true)
+@ConditionalOnExpression("!'${app.dev-mode:false}'.equals('true') and '${app.mail.resend-api-key:}'.isBlank()")
 public class UnconfiguredLoginMailSender implements LoginMailSender {
 
     private static final Logger log = LoggerFactory.getLogger(UnconfiguredLoginMailSender.class);
