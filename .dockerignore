@@ -1,0 +1,10 @@
+.git
+.gradle
+.vscode
+build
+config
+data
+*.xlsx
+*.pem
+*.key
+.env*

@@ -1,0 +1,8 @@
+#!include:.gitignore
+.git
+.gradle
+build
+config/
+data/
+*.xlsx
+.env*
