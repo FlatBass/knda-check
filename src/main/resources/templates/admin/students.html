@@ -28,6 +28,7 @@
     </style>
 </head>
 <body>
+    <p th:if="${adminView}"><a th:href="@{/admin/roster}">← 수강생 목록</a></p>
 <div style="display:flex; justify-content:space-between; align-items:center;">
     <h1>수강생 이메일 관리</h1>
     <a class="btn" th:href="@{/admin/attendance}">출결 입력으로</a>

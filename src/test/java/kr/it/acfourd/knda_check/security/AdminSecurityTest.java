@@ -64,6 +64,13 @@ class AdminSecurityTest {
     }
 
     @Test
+    void 관리자_권한이_있으면_수강생_목록이_열린다() throws Exception {
+        mvc.perform(get("/admin/roster").param("classCode", "PORT").param("date", "2026-08-18")
+                .with(user("tester").roles("ADMIN")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void 관리자가_아닌_권한은_거부된다() throws Exception {
         mvc.perform(get("/admin/attendance").with(user("tester").roles("STUDENT")))
                 .andExpect(status().isForbidden());
@@ -85,7 +92,7 @@ class AdminSecurityTest {
                 .andExpect(redirectedUrl("/login?error"));
     }
 
-        @Test
+    @Test
     void 수강생_이메일_관리_화면도_관리자만_열_수_있다() throws Exception {
         mvc.perform(get("/admin/students").with(user("P001").roles("STUDENT")))
                 .andExpect(status().isForbidden());

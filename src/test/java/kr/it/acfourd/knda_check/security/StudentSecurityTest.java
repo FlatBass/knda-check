@@ -21,7 +21,8 @@ import org.springframework.web.context.WebApplicationContext;
 @SpringBootTest
 class StudentSecurityTest {
 
-    @Autowired WebApplicationContext context;
+    @Autowired
+    WebApplicationContext context;
 
     MockMvc mvc;
 
@@ -58,6 +59,18 @@ class StudentSecurityTest {
     @Test
     void 학생_권한으로는_관리자_화면이_열리지_않는다() throws Exception {
         mvc.perform(get("/admin/attendance").with(user("P001").roles("STUDENT")))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void 학생_권한으로는_학생_목록이_열리지_않는다() throws Exception {
+        mvc.perform(get("/admin/roster").with(user("P001").roles("STUDENT")))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void 학생_권한으로는_다른_학생_정보를_볼_수_없다() throws Exception {
+        mvc.perform(get("/admin/roster/P001").with(user("P001").roles("STUDENT")))
                 .andExpect(status().isForbidden());
     }
 
