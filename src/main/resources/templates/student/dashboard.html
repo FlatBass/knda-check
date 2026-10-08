@@ -63,12 +63,12 @@
 <th:block th:if="${view.hasConfirmed()}" th:with="o=${view.overall()}, s=${view.sickLeave()}">
 
     <div class="stack">
-        <!-- 1. 전체 과정 -->
-        <th:block th:replace="~{student/fragments :: progress('전체 과정 진행 현황', '전체 소정훈련일 기준', ${o}, ${view.showJudgement()})}"></th:block>
-
-        <!-- 2. 현재 단위기간 (이 기간의 출결만으로 따로 계산) -->
+        <!-- 1. 현재 단위기간 (이 기간의 출결만으로 따로 계산) -->
         <th:block th:if="${view.current() != null}"
                   th:replace="~{student/fragments :: progress(${view.current().name() + ' 단위기간 진행 현황'}, ${view.current().rangeText() + ' · 이 기간의 출결만으로 계산'}, ${view.current().stats()}, ${view.showJudgement()})}"></th:block>
+
+        <!-- 2. 전체 과정 -->
+        <th:block th:replace="~{student/fragments :: progress('전체 과정 진행 현황', '전체 소정훈련일 기준', ${o}, ${view.showJudgement()})}"></th:block>
 
         <!-- 3. 병결 -->
         <section class="card">
