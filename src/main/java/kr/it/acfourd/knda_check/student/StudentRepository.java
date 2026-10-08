@@ -9,5 +9,7 @@ public interface StudentRepository extends JpaRepository<Student, String> {
 
     List<Student> findByClassCodeOrderById(ClassCode classCode);
 
+    List<Student> findByClassCodeOrderByNameAscIdAsc(ClassCode classCode);
+
     Optional<Student> findByEmailIgnoreCase(String email);
 }

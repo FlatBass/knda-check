@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>수강생 목록</title>
+    <style>
+        body { font-family: system-ui, "Malgun Gothic", sans-serif; margin: 0; padding: 16px; color: #222; background: #fafafa; }
+        h1 { font-size: 20px; margin: 0; }
+        h2 { font-size: 16px; margin: 20px 0 6px; }
+        .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .btn { padding: 6px 12px; border: 1px solid #999; border-radius: 6px; background: #fff;
+               text-decoration: none; color: #222; font-size: 14px; }
+        .hint { color: #666; font-size: 13px; }
+        li { margin: 4px 0; }
+    </style>
+</head>
+<body>
+<div class="top">
+    <h1>수강생 목록</h1>
+    <a class="btn" th:href="@{/admin/attendance}">← 출결 입력</a>
+</div>
+<p class="hint">이름을 누르면 그 수강생의 출결 현황 화면이 열립니다. (가나다순)</p>
+
+<h2>항만반 (<span th:text="${#lists.size(port)}">0</span>명)</h2>
+<ul>
+    <li th:each="s : ${port}">
+        <a th:href="@{/admin/roster/{id}(id=${s.id})}" th:text="${s.name} + ' (' + ${s.id} + ')'">이름</a>
+    </li>
+</ul>
+
+<h2>AI반 (<span th:text="${#lists.size(ai)}">0</span>명)</h2>
+<ul>
+    <li th:each="s : ${ai}">
+        <a th:href="@{/admin/roster/{id}(id=${s.id})}" th:text="${s.name} + ' (' + ${s.id} + ')'">이름</a>
+    </li>
+</ul>
+</body>
+</html>
