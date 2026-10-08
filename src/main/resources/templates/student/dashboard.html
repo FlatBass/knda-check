@@ -13,6 +13,7 @@
         .sub2 { font-size: 12px; color: #888; margin-bottom: 2px; }
         .notice { font-size: 12px; color: #666; background: #fff; border-left: 3px solid #bbb; padding: 8px 10px; margin: 8px 0 16px; }
         .stack { display: grid; gap: 10px; }
+        .period-notice { margin: 0; padding: 4px; font-size: 13px; color: #555; }
         .card { background: #fff; border-radius: 10px; padding: 14px 16px; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
         .label { font-size: 13px; color: #666; }
         .card-title { font-size: 18px; font-weight: 700; color: #222; margin: 0 0 4px; }
@@ -56,8 +57,12 @@
         td.left { text-align: left; }
         tr.cur td { background: #f1f6ff; }
         details { background: #fff; border-radius: 10px; padding: 10px 16px; margin-top: 10px; font-size: 13px; }
+        .course-details { margin-top: 0; }
+        .course-details .card-title { margin-top: 12px; }
+        .course-details fieldset.goal { min-width: 0; border: 1px solid #d8e5fa; }
+        .course-details legend { padding: 0 4px; font-size: 13px; font-weight: 600; color: #444; }
+        .calculation-note { margin: 12px 0 0; padding-top: 8px; border-top: 1px solid #eee; font-size: 12px; color: #666; }
         summary { cursor: pointer; color: #444; }
-        details ul { margin: 8px 0 0; padding-left: 18px; color: #444; }
         .empty { background: #fff; padding: 24px; border-radius: 10px; text-align: center; color: #555; }
         @media (max-width: 420px) {
             .attendance-summary .total { flex-basis: 100%; }
@@ -79,8 +84,7 @@
 
 <p class="empty" th:unless="${view.hasConfirmed()}">아직 확정된 출결이 없습니다. 출결이 확정되면 이곳에 표시됩니다.</p>
 
-<th:block th:if="${view.hasConfirmed()}"
-          th:with="o=${view.overall()}, s=${view.sickLeave()}, overallRate=${o.requiredDays() > 0 ? #numbers.formatDecimal(o.finalCreditedDays() * 100.0 / o.requiredDays(), 1, 2, 'POINT') + '%' : '-'}">
+<th:block th:if="${view.hasConfirmed()}" th:with="o=${view.overall()}, s=${view.sickLeave()}">
 
     <div class="stack">
         <!-- 1. 병결 -->
@@ -97,8 +101,12 @@
             <th:block th:replace="~{student/fragments :: progress(${view.current().name() + ' 단위기간 진행 현황'}, ${view.current().rangeText() + ' · 이 기간의 출결만으로 계산'}, ${view.current().stats()}, ${view.showJudgement()}, ${view.days().subList(0, view.current().stats().confirmedDays())})}"></th:block>
         </th:block>
 
+        <p class="period-notice" th:if="${view.current() != null}">
+            단위기간별 80% 충족 여부와 전체 과정 80% 충족 여부는 별도로 계산됩니다.</p>
+
         <!-- 3. 전체 과정 -->
         <th:block th:replace="~{student/fragments :: progress('전체 과정 진행 현황', '전체 소정훈련일 기준', ${o}, ${view.showJudgement()}, ${view.days()})}"></th:block>
+        <th:block th:replace="~{student/fragments :: overallDetails(${o}, ${view.showJudgement()}, ${view.days()})}"></th:block>
     </div>
 
     <h2>단위기간별 현황</h2>
@@ -134,21 +142,6 @@
             </tbody>
         </table>
     </div>
-
-    <details>
-        <summary>전체 기간 계산 자세히 보기</summary>
-        <ul>
-            <li>확정된 훈련일수: <b th:text="${o.confirmedDays()}">32</b>일</li>
-            <li>소정훈련일수: <b th:text="${o.requiredDays()}">75</b>일</li>
-            <li>출석으로 인정된 날 (공가·인정 병결 포함): <b th:text="${o.creditedDays()}">30</b>일</li>
-            <li>지각·조퇴·외출 환산: <b th:text="${o.convertibleEvents()}">6</b>회 → 결석
-                <b th:text="${o.extraAbsences()}">2</b>일 (3회 = 1일, 이미 결석 처리된 날의 기록은 제외)</li>
-            <li>최종 인정 출석일수: <b th:text="${o.creditedDays()}">30</b> − <b th:text="${o.extraAbsences()}">2</b> =
-                <b th:text="${o.finalCreditedDays()}">28</b>일</li>
-            <li>출석률 (소정훈련일 기준): <b th:text="${o.finalCreditedDays()}">28</b> ÷ <b th:text="${o.requiredDays()}">75</b> =
-                <b th:text="${overallRate}">37.33%</b></li>
-        </ul>
-    </details>
 
     <h2>일별 상세</h2>
     <div class="wrap">
