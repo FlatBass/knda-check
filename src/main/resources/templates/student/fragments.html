@@ -64,10 +64,10 @@
         수강 상태 확인이 필요하여 80% 기준 안내는 표시하지 않습니다. 운영매니저에게 문의해 주세요.</div>
 
     <div class="meta">
-        지금까지 출석률 <b th:text="${o.ratePercent()} ?: '-'">87.50%</b> (참고)<br>
+        소정훈련일 기준 출석률
+        <b th:text="${o.requiredDays() > 0 ? #numbers.formatDecimal(o.finalCreditedDays() * 100.0 / o.requiredDays(), 1, 2, 'POINT') + '%' : '-'}">37.33%</b> (참고)<br>
         지각·조퇴·외출 누적 <b th:text="${o.convertibleEvents()}">6</b>회 ·
         결석 환산 <b th:text="${o.extraAbsences()}">2</b>일
-        <span th:if="${o.remainingDays() > 0}"> · 다음 환산까지 <b th:text="${o.eventsUntilNext()}">3</b>회</span>
     </div>
 </section>
 

@@ -79,7 +79,8 @@
 
 <p class="empty" th:unless="${view.hasConfirmed()}">아직 확정된 출결이 없습니다. 출결이 확정되면 이곳에 표시됩니다.</p>
 
-<th:block th:if="${view.hasConfirmed()}" th:with="o=${view.overall()}, s=${view.sickLeave()}">
+<th:block th:if="${view.hasConfirmed()}"
+          th:with="o=${view.overall()}, s=${view.sickLeave()}, overallRate=${o.requiredDays() > 0 ? #numbers.formatDecimal(o.finalCreditedDays() * 100.0 / o.requiredDays(), 1, 2, 'POINT') + '%' : '-'}">
 
     <div class="stack">
         <!-- 1. 병결 -->
@@ -104,7 +105,7 @@
     <div class="wrap">
         <table>
             <thead>
-            <tr><th>기간</th><th>확정 / 전체</th><th>현재 출석률</th><th>80% 기준</th></tr>
+            <tr><th>기간</th><th>확정 / 전체</th><th>출석률<br><small>소정훈련일 기준</small></th><th>80% 기준</th></tr>
             </thead>
             <tbody>
             <tr th:each="p : ${view.periods()}"
@@ -112,7 +113,7 @@
                 <td class="left"><b th:text="${p.name()}">1차</b><br><small th:text="${p.rangeText()}">8/18 ~ 9/17</small></td>
                 <td><span th:text="${p.stats().confirmedDays()}">0</span> / <span th:text="${p.stats().requiredDays()}">0</span>일
                     <br><small th:text="${p.status()}">진행 중</small></td>
-                <td th:text="${p.stats().ratePercent()} ?: '-'">-</td>
+                <td th:text="${p.stats().confirmedDays() > 0 and p.stats().requiredDays() > 0 ? #numbers.formatDecimal(p.stats().finalCreditedDays() * 100.0 / p.stats().requiredDays(), 1, 2, 'POINT') + '%' : '-'}">-</td>
                 <td>
                     <th:block th:if="${p.stats().confirmedDays() == 0 or !view.showJudgement()}">-</th:block>
                     <th:block th:if="${p.stats().confirmedDays() > 0 and view.showJudgement()}">
@@ -138,13 +139,14 @@
         <summary>전체 기간 계산 자세히 보기</summary>
         <ul>
             <li>확정된 훈련일수: <b th:text="${o.confirmedDays()}">32</b>일</li>
+            <li>소정훈련일수: <b th:text="${o.requiredDays()}">75</b>일</li>
             <li>출석으로 인정된 날 (공가·인정 병결 포함): <b th:text="${o.creditedDays()}">30</b>일</li>
             <li>지각·조퇴·외출 환산: <b th:text="${o.convertibleEvents()}">6</b>회 → 결석
                 <b th:text="${o.extraAbsences()}">2</b>일 (3회 = 1일, 이미 결석 처리된 날의 기록은 제외)</li>
             <li>최종 인정 출석일수: <b th:text="${o.creditedDays()}">30</b> − <b th:text="${o.extraAbsences()}">2</b> =
                 <b th:text="${o.finalCreditedDays()}">28</b>일</li>
-            <li>지금까지의 출석률: <b th:text="${o.finalCreditedDays()}">28</b> ÷ <b th:text="${o.confirmedDays()}">32</b> =
-                <b th:text="${o.ratePercent()} ?: '-'">87.50%</b></li>
+            <li>출석률 (소정훈련일 기준): <b th:text="${o.finalCreditedDays()}">28</b> ÷ <b th:text="${o.requiredDays()}">75</b> =
+                <b th:text="${overallRate}">37.33%</b></li>
         </ul>
     </details>
 
