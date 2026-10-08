@@ -3,20 +3,14 @@
 <body>
 
 <!-- 진행 현황 카드: 전체 기간과 단위기간이 같은 모양을 쓴다. o = DashboardView.Stats -->
-<section class="card" th:fragment="progress(title, subtitle, o, show)">
-    <div class="label" th:text="${title}">전체 과정 진행 현황</div>
+<section class="card" th:fragment="progress(title, subtitle, o, show, days, isOverall)">
+    <h2 class="card-title" th:text="${title}">전체 과정 진행 현황</h2>
     <div class="sub2" th:if="${subtitle}" th:text="${subtitle}">8/18 ~ 9/17</div>
-    <div class="mid"><span th:text="${o.requiredDays()}">63</span>일 중
-        <span th:text="${o.confirmedDays()}">32</span>일째까지 확정</div>
-
-    <div class="bar">
-        <div class="ok" th:style="'width:' + ${o.creditedBarPercent()} + '%'"></div>
-        <div class="ng" th:style="'width:' + ${o.absentBarPercent()} + '%'"></div>
-    </div>
+    <th:block th:replace="~{student/fragments :: attendanceSummary(${o}, ${days})}"></th:block>
     <div class="legend">
-        <span class="dot ok"></span>인정 출석 <b th:text="${o.finalCreditedDays()}">28</b>일
-        <span class="dot ng"></span>결석 <b th:text="${o.totalAbsences()}">4</b>일
-        <span class="dot rest"></span>남은 날 <b th:text="${o.remainingDays()}">31</b>일
+        <span><span class="dot ok" aria-hidden="true"></span>인정 출석 <b th:text="${o.finalCreditedDays()}">28</b>일</span>
+        <span><span class="dot ng" aria-hidden="true"></span>결석 <b th:text="${o.totalAbsences()}">4</b>일</span>
+        <span><span class="dot rest" aria-hidden="true"></span>남은 날 <b th:text="${o.remainingDays()}">31</b>일</span>
     </div>
     <div class="note" th:if="${o.extraAbsences() > 0}">
         결석 <span th:text="${o.totalAbsences()}">4</span>일에는 지각·조퇴·외출로 환산된
@@ -24,9 +18,7 @@
 
     <div th:if="${show}" class="goal"
          th:classappend="${o.achieved()} ? 'good' : (${o.unreachable()} ? 'bad' : '')">
-        <div class="line">80% 기준: <span th:text="${o.requiredDays()}">63</span>일 중
-            <b th:text="${o.goalDays()}">51</b>일 이상 출석 인정</div>
-
+        <div class="title" th:if="${isOverall}">전체 수료 기준</div>
         <!-- 이 범위의 모든 날이 확정되었을 때: 최종 결과 -->
         <th:block th:if="${o.remainingDays() == 0}">
             <div class="answer" th:if="${o.achieved()}">✔ 80% 기준을 충족했습니다.</div>
@@ -40,10 +32,19 @@
                 남은 <span th:text="${o.remainingDays()}">3</span>일을 모두 온전히 출석해도 기준에 미치지 못합니다.
                 운영매니저에게 문의해 주세요.</div>
             <div class="answer" th:if="${!o.achieved() and !o.unreachable()}">
-                앞으로 남은 <b th:text="${o.remainingDays()}">31</b>일 중
-                <b th:text="${o.neededDays()}">23</b>일 이상 출석해야 합니다.<br>
-                <small>결석은 최대 <b th:text="${o.missableDays()}">8</b>일까지 가능합니다.</small>
+                남은 <b th:text="${o.remainingDays()}">31</b>일 중
+                <b th:text="${o.neededDays()}">23</b>일 이상 출석해야 합니다.
             </div>
+        </th:block>
+        <div class="line" th:unless="${isOverall}">80% 기준: <span th:text="${o.requiredDays()}">63</span>일 중
+            <b th:text="${o.goalDays()}">51</b>일 이상 출석 인정</div>
+        <div class="line" th:if="${isOverall}">80% 기준 · 총 <span th:text="${o.requiredDays()}">75</span>일 중
+            <b th:text="${o.goalDays()}">60</b>일 이상 인정 출석</div>
+        <th:block th:if="${o.remainingDays() > 0}">
+            <div class="allowance" th:if="${!isOverall and !o.achieved() and !o.unreachable()}">
+                결석은 최대 <b th:text="${o.missableDays()}">8</b>일까지 가능합니다.</div>
+            <div class="allowance" th:if="${isOverall and !o.unreachable()}">
+                현재 기준 추가 결석 가능일수 <b th:text="${o.missableDays()}">9</b>일</div>
             <div class="note">지각·조퇴·외출이 없다고 가정한 일수입니다. 3회가 쌓일 때마다 결석 1일로 계산되어
                 위 일수가 1일씩 늘어납니다.</div>
         </th:block>
@@ -52,12 +53,40 @@
         수강 상태 확인이 필요하여 80% 기준 안내는 표시하지 않습니다. 운영매니저에게 문의해 주세요.</div>
 
     <div class="meta">
-        지금까지 출석률 <b th:text="${o.ratePercent()} ?: '-'">87.50%</b> (참고)<br>
+        소정훈련일 기준 출석률
+        <b th:text="${o.requiredDays() > 0 ? #numbers.formatDecimal(o.finalCreditedDays() * 100.0 / o.requiredDays(), 1, 2, 'POINT') + '%' : '-'}">37.33%</b> (참고)<br>
         지각·조퇴·외출 누적 <b th:text="${o.convertibleEvents()}">6</b>회 ·
         결석 환산 <b th:text="${o.extraAbsences()}">2</b>일
-        <span th:if="${o.remainingDays() > 0}"> · 다음 환산까지 <b th:text="${o.eventsUntilNext()}">3</b>회</span>
     </div>
 </section>
+
+<!-- 출결 카드에서 같은 확정 출결 요약과 진행 바를 사용한다. -->
+<th:block th:fragment="attendanceSummary(o, days)">
+    <div class="attendance-summary">
+        <span class="total"><span th:text="${o.requiredDays()}">17</span>일 중</span>
+        <span class="metric present">출석 <b class="count" th:text="${o.finalCreditedDays()}">9</b>일</span>
+        <span class="metric absent">결석 <b class="count" th:text="${o.totalAbsences()}">2</b>일</span>
+    </div>
+    <div class="event-summary">
+        <span>지각 <b th:text="${#aggregates.sum(days.![late()]) ?: 0}">0</b>회</span>
+        <span>조퇴 <b th:text="${#aggregates.sum(days.![early()]) ?: 0}">0</b>회</span>
+        <span>외출 <b th:text="${#aggregates.sum(days.![outing()]) ?: 0}">0</b>회</span>
+    </div>
+    <div class="input-progress">출결 입력 현황 · <span th:text="${o.confirmedDays()}">11</span> /
+        <span th:text="${o.requiredDays()}">17</span>일 확정</div>
+
+    <div class="bar">
+        <div class="ok" th:style="'width:' + ${o.creditedBarPercent()} + '%'"></div>
+        <div class="ng" th:style="'width:' + ${o.absentBarPercent()} + '%'"></div>
+    </div>
+</th:block>
+
+<details class="course-details" th:fragment="overallDetails()">
+    <summary>전체 기간 계산 자세히 보기</summary>
+    <p class="calculation-note"><span aria-hidden="true">ⓘ</span> 전체 과정은 단위기간별 출석률을 평균하지 않고
+        전체 출결을 다시 계산합니다.<br>
+        지각·조퇴·외출 누적 3회 = 결석 1일</p>
+</details>
 
 </body>
 </html>

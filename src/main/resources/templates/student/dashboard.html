@@ -13,22 +13,39 @@
         .sub2 { font-size: 12px; color: #888; margin-bottom: 2px; }
         .notice { font-size: 12px; color: #666; background: #fff; border-left: 3px solid #bbb; padding: 8px 10px; margin: 8px 0 16px; }
         .stack { display: grid; gap: 10px; }
+        .period-notice { margin: 0; padding: 4px; font-size: 13px; color: #555; }
         .card { background: #fff; border-radius: 10px; padding: 14px 16px; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
         .label { font-size: 13px; color: #666; }
+        .card-title { font-size: 18px; font-weight: 700; color: #222; margin: 0 0 4px; }
         .mid { font-size: 20px; font-weight: 700; margin: 4px 0; }
+        .attendance-summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin: 8px 0 2px; }
+        .attendance-summary .total { font-size: 16px; color: #555; white-space: nowrap; }
+        .attendance-summary .metric { font-size: 18px; font-weight: 600; white-space: nowrap; }
+        .attendance-summary .count { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+        .attendance-summary .present { color: #1e6b34; }
+        .attendance-summary .absent { color: #a4262c; }
+        .attendance-summary .absent::before { content: "·"; color: #888; margin-right: 8px; }
+        .event-summary { display: flex; flex-wrap: wrap; gap: 2px 8px; font-size: 14px; color: #444; }
+        .event-summary span { white-space: nowrap; }
+        .event-summary span + span::before { content: "·"; color: #888; margin-right: 8px; }
+        .input-progress { margin-top: 8px; font-size: 12px; color: #777; }
         .bar { display: flex; height: 14px; background: #e3e6ea; border-radius: 7px; overflow: hidden; margin: 10px 0 6px; }
         .bar .ok { background: #34a853; }
         .bar .ng { background: #ea4335; }
-        .legend { font-size: 12px; color: #555; }
+        .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: #555; }
+        .legend > span { white-space: nowrap; }
         .dot { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin: 0 3px 0 8px; vertical-align: baseline; }
         .dot:first-child { margin-left: 0; }
         .dot.ok { background: #34a853; } .dot.ng { background: #ea4335; } .dot.rest { background: #e3e6ea; }
         .goal { margin-top: 12px; padding: 10px 12px; background: #f1f6ff; border-radius: 8px; }
-        .goal .line { font-size: 13px; color: #444; }
-        .goal .answer { font-size: 17px; margin-top: 6px; }
+        .goal .title { margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #444; }
+        .goal .line { font-size: 12px; color: #666; }
+        .goal .answer { font-size: 16px; font-weight: 600; margin: 0 0 6px; }
+        .goal .allowance { margin-top: 4px; font-size: 13px; color: #444; }
         .goal.good { background: #e6f4ea; }
         .goal.bad { background: #fde7e9; }
-        .meta { margin-top: 12px; padding-top: 8px; border-top: 1px solid #eee; font-size: 13px; color: #555; }
+        .meta { margin-top: 12px; padding-top: 8px; border-top: 1px solid #eee; font-size: 12px; color: #777; }
+        .meta b { font-weight: 500; }
         .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 13px; font-weight: 600; }
         .badge.ok { background: #e6f4ea; color: #1e6b34; }
         .badge.ng { background: #fde7e9; color: #a4262c; }
@@ -41,9 +58,14 @@
         td.left { text-align: left; }
         tr.cur td { background: #f1f6ff; }
         details { background: #fff; border-radius: 10px; padding: 10px 16px; margin-top: 10px; font-size: 13px; }
+        .course-details { margin-top: 0; }
+        .calculation-note { margin: 12px 0 0; padding-top: 8px; border-top: 1px solid #eee; font-size: 12px; color: #666; }
         summary { cursor: pointer; color: #444; }
-        details ul { margin: 8px 0 0; padding-left: 18px; color: #444; }
         .empty { background: #fff; padding: 24px; border-radius: 10px; text-align: center; color: #555; }
+        @media (max-width: 420px) {
+            .attendance-summary .total { flex-basis: 100%; }
+            .attendance-summary .count { font-size: 24px; }
+        }
     </style>
 </head>
 <body>
@@ -63,27 +85,33 @@
 <th:block th:if="${view.hasConfirmed()}" th:with="o=${view.overall()}, s=${view.sickLeave()}">
 
     <div class="stack">
-        <!-- 1. 현재 단위기간 (이 기간의 출결만으로 따로 계산) -->
-        <th:block th:if="${view.current() != null}"
-                  th:replace="~{student/fragments :: progress(${view.current().name() + ' 단위기간 진행 현황'}, ${view.current().rangeText() + ' · 이 기간의 출결만으로 계산'}, ${view.current().stats()}, ${view.showJudgement()})}"></th:block>
-
-        <!-- 2. 전체 과정 -->
-        <th:block th:replace="~{student/fragments :: progress('전체 과정 진행 현황', '전체 소정훈련일 기준', ${o}, ${view.showJudgement()})}"></th:block>
-
-        <!-- 3. 병결 -->
+        <!-- 1. 병결 -->
         <section class="card">
             <div class="label">병결 사용 (전체 과정 기준)</div>
             <div class="mid"><span th:text="${s.used()}">0</span> / <span th:text="${s.limit()}">6</span>일</div>
             <div th:if="${s.remaining() >= 0}">잔여 <b th:text="${s.remaining()}">6</b>일</div>
             <div class="warn" th:unless="${s.remaining() >= 0}">한도 초과 <b th:text="${-s.remaining()}">1</b>일</div>
         </section>
+
+        <!-- 2. 현재 단위기간 (이 기간의 출결만으로 따로 계산) -->
+        <!-- 일별 기록은 최신순이므로 현재 기간의 확정일수만큼이 이 기간의 기록이다. -->
+        <th:block th:if="${view.current() != null}">
+            <th:block th:replace="~{student/fragments :: progress(${view.current().name() + ' 단위기간 진행 현황'}, ${view.current().rangeText() + ' · 이 기간의 출결만으로 계산'}, ${view.current().stats()}, ${view.showJudgement()}, ${view.days().subList(0, view.current().stats().confirmedDays())}, false)}"></th:block>
+        </th:block>
+
+        <p class="period-notice" th:if="${view.current() != null}">
+            단위기간별 80% 충족 여부와 전체 과정 80% 충족 여부는 별도로 계산됩니다.</p>
+
+        <!-- 3. 전체 과정 -->
+        <th:block th:replace="~{student/fragments :: progress('전체 과정 진행 현황', '전체 소정훈련일 기준', ${o}, ${view.showJudgement()}, ${view.days()}, true)}"></th:block>
+        <th:block th:replace="~{student/fragments :: overallDetails()}"></th:block>
     </div>
 
     <h2>단위기간별 현황</h2>
     <div class="wrap">
         <table>
             <thead>
-            <tr><th>기간</th><th>확정 / 전체</th><th>현재 출석률</th><th>80% 기준</th></tr>
+            <tr><th>기간</th><th>확정 / 전체</th><th>출석률<br><small>소정훈련일 기준</small></th><th>80% 기준</th></tr>
             </thead>
             <tbody>
             <tr th:each="p : ${view.periods()}"
@@ -91,7 +119,7 @@
                 <td class="left"><b th:text="${p.name()}">1차</b><br><small th:text="${p.rangeText()}">8/18 ~ 9/17</small></td>
                 <td><span th:text="${p.stats().confirmedDays()}">0</span> / <span th:text="${p.stats().requiredDays()}">0</span>일
                     <br><small th:text="${p.status()}">진행 중</small></td>
-                <td th:text="${p.stats().ratePercent()} ?: '-'">-</td>
+                <td th:text="${p.stats().confirmedDays() > 0 and p.stats().requiredDays() > 0 ? #numbers.formatDecimal(p.stats().finalCreditedDays() * 100.0 / p.stats().requiredDays(), 1, 2, 'POINT') + '%' : '-'}">-</td>
                 <td>
                     <th:block th:if="${p.stats().confirmedDays() == 0 or !view.showJudgement()}">-</th:block>
                     <th:block th:if="${p.stats().confirmedDays() > 0 and view.showJudgement()}">
@@ -112,20 +140,6 @@
             </tbody>
         </table>
     </div>
-
-    <details>
-        <summary>전체 기간 계산 자세히 보기</summary>
-        <ul>
-            <li>확정된 훈련일수: <b th:text="${o.confirmedDays()}">32</b>일</li>
-            <li>출석으로 인정된 날 (공가·인정 병결 포함): <b th:text="${o.creditedDays()}">30</b>일</li>
-            <li>지각·조퇴·외출 환산: <b th:text="${o.convertibleEvents()}">6</b>회 → 결석
-                <b th:text="${o.extraAbsences()}">2</b>일 (3회 = 1일, 이미 결석 처리된 날의 기록은 제외)</li>
-            <li>최종 인정 출석일수: <b th:text="${o.creditedDays()}">30</b> − <b th:text="${o.extraAbsences()}">2</b> =
-                <b th:text="${o.finalCreditedDays()}">28</b>일</li>
-            <li>지금까지의 출석률: <b th:text="${o.finalCreditedDays()}">28</b> ÷ <b th:text="${o.confirmedDays()}">32</b> =
-                <b th:text="${o.ratePercent()} ?: '-'">87.50%</b></li>
-        </ul>
-    </details>
 
     <h2>일별 상세</h2>
     <div class="wrap">
