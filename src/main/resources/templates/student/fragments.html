@@ -4,7 +4,7 @@
 
 <!-- 진행 현황 카드: 전체 기간과 단위기간이 같은 모양을 쓴다. o = DashboardView.Stats -->
 <section class="card" th:fragment="progress(title, subtitle, o, show, days)">
-    <div class="label" th:text="${title}">전체 과정 진행 현황</div>
+    <h2 class="card-title" th:text="${title}">전체 과정 진행 현황</h2>
     <div class="sub2" th:if="${subtitle}" th:text="${subtitle}">8/18 ~ 9/17</div>
     <div class="attendance-summary">
         <span class="total"><span th:text="${o.requiredDays()}">17</span>일 중</span>

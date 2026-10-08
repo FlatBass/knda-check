@@ -15,6 +15,7 @@
         .stack { display: grid; gap: 10px; }
         .card { background: #fff; border-radius: 10px; padding: 14px 16px; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
         .label { font-size: 13px; color: #666; }
+        .card-title { font-size: 18px; font-weight: 700; color: #222; margin: 0 0 4px; }
         .mid { font-size: 20px; font-weight: 700; margin: 4px 0; }
         .attendance-summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin: 8px 0 2px; }
         .attendance-summary .total { font-size: 16px; color: #555; white-space: nowrap; }
@@ -81,22 +82,22 @@
 <th:block th:if="${view.hasConfirmed()}" th:with="o=${view.overall()}, s=${view.sickLeave()}">
 
     <div class="stack">
-        <!-- 1. 현재 단위기간 (이 기간의 출결만으로 따로 계산) -->
-        <!-- 일별 기록은 최신순이므로 현재 기간의 확정일수만큼이 이 기간의 기록이다. -->
-        <th:block th:if="${view.current() != null}">
-            <th:block th:replace="~{student/fragments :: progress(${view.current().name() + ' 단위기간 진행 현황'}, ${view.current().rangeText() + ' · 이 기간의 출결만으로 계산'}, ${view.current().stats()}, ${view.showJudgement()}, ${view.days().subList(0, view.current().stats().confirmedDays())})}"></th:block>
-        </th:block>
-
-        <!-- 2. 전체 과정 -->
-        <th:block th:replace="~{student/fragments :: progress('전체 과정 진행 현황', '전체 소정훈련일 기준', ${o}, ${view.showJudgement()}, ${view.days()})}"></th:block>
-
-        <!-- 3. 병결 -->
+        <!-- 1. 병결 -->
         <section class="card">
             <div class="label">병결 사용 (전체 과정 기준)</div>
             <div class="mid"><span th:text="${s.used()}">0</span> / <span th:text="${s.limit()}">6</span>일</div>
             <div th:if="${s.remaining() >= 0}">잔여 <b th:text="${s.remaining()}">6</b>일</div>
             <div class="warn" th:unless="${s.remaining() >= 0}">한도 초과 <b th:text="${-s.remaining()}">1</b>일</div>
         </section>
+
+        <!-- 2. 현재 단위기간 (이 기간의 출결만으로 따로 계산) -->
+        <!-- 일별 기록은 최신순이므로 현재 기간의 확정일수만큼이 이 기간의 기록이다. -->
+        <th:block th:if="${view.current() != null}">
+            <th:block th:replace="~{student/fragments :: progress(${view.current().name() + ' 단위기간 진행 현황'}, ${view.current().rangeText() + ' · 이 기간의 출결만으로 계산'}, ${view.current().stats()}, ${view.showJudgement()}, ${view.days().subList(0, view.current().stats().confirmedDays())})}"></th:block>
+        </th:block>
+
+        <!-- 3. 전체 과정 -->
+        <th:block th:replace="~{student/fragments :: progress('전체 과정 진행 현황', '전체 소정훈련일 기준', ${o}, ${view.showJudgement()}, ${view.days()})}"></th:block>
     </div>
 
     <h2>단위기간별 현황</h2>
