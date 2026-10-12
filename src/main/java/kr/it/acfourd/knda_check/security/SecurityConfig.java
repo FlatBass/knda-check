@@ -38,7 +38,7 @@ public class SecurityConfig {
         SecurityFilterChain filterChain(HttpSecurity http, LoginAttemptService attempts) throws Exception {
                 http
                                 .authorizeHttpRequests(auth -> auth
-                                                .requestMatchers("/login", "/error", "/student/login", "/auth/**")
+                                                .requestMatchers("/", "/login", "/error", "/student/login", "/auth/**")
                                                 .permitAll()
                                                 .requestMatchers("/my").hasRole("STUDENT")
                                                 .requestMatchers("/admin/**", "/dev/**").hasRole("ADMIN")
