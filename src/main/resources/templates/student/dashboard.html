@@ -10,6 +10,8 @@
         h1 { font-size: 20px; margin: 0 0 4px; }
         h2 { font-size: 16px; margin: 24px 0 8px; }
         .sub { color: #555; margin: 0 0 8px; font-size: 14px; }
+        .sub .confirmed-date { color: #a4262c; font-weight: 700; }
+        .sub .confirmed-label { color: #222; font-weight: 700; }
         .sub2 { font-size: 12px; color: #888; margin-bottom: 2px; }
         .notice { font-size: 12px; color: #666; background: #fff; border-left: 3px solid #bbb; padding: 8px 10px; margin: 8px 0 16px; }
         .stack { display: grid; gap: 10px; }
@@ -28,6 +30,7 @@
         .event-summary { display: flex; flex-wrap: wrap; gap: 2px 8px; font-size: 14px; color: #444; }
         .event-summary span { white-space: nowrap; }
         .event-summary span + span::before { content: "·"; color: #888; margin-right: 8px; }
+        .conversion-summary span + span::before { content: none; }
         .input-progress { margin-top: 8px; font-size: 12px; color: #777; }
         .bar { display: flex; height: 14px; background: #e3e6ea; border-radius: 7px; overflow: hidden; margin: 10px 0 6px; }
         .bar .ok { background: #34a853; }
@@ -44,8 +47,13 @@
         .goal .allowance { margin-top: 4px; font-size: 13px; color: #444; }
         .goal.good { background: #e6f4ea; }
         .goal.bad { background: #fde7e9; }
-        .meta { margin-top: 12px; padding-top: 8px; border-top: 1px solid #eee; font-size: 12px; color: #777; }
-        .meta b { font-weight: 500; }
+        .meta { margin-top: 12px; padding-top: 8px; border-top: 1px solid #eee; font-size: 14px; color: #555; line-height: 1.6; }
+        .meta b { font-weight: 600; }
+        .event-detail { display: flex; flex-wrap: wrap; gap: 2px 8px; margin-top: 4px; }
+        .event-detail span { white-space: nowrap; }
+        .event-detail span + span::before { content: "·"; margin-right: 8px; }
+        .conversion-detail { display: flex; flex-wrap: wrap; gap: 2px 4px; }
+        .conversion-detail span { white-space: nowrap; }
         .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 13px; font-weight: 600; }
         .badge.ok { background: #e6f4ea; color: #1e6b34; }
         .badge.ng { background: #fde7e9; color: #a4262c; }
@@ -75,7 +83,7 @@
 </div>
 <p class="sub">
     <span th:text="${view.className()}">항만반</span>
-    <span th:if="${view.asOfText()}" th:text="'· ' + ${view.asOfText()} + '까지 확정된 출결 기준'"></span>
+    <span th:if="${view.asOfText()}">· <span class="confirmed-date" th:text="${view.asOfText()}"></span><span class="confirmed-label">까지 확정</span>된 출결 기준</span>
 </p>
 <p class="notice">본 화면은 운영자가 입력한 출결을 바탕으로 제공하는 참고용 현황입니다.
     실제 출결 확정 및 수료 여부는 공식 기준과 최종 확인 결과에 따릅니다.</p>
