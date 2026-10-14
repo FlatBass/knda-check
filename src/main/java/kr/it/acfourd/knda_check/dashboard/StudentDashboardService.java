@@ -12,6 +12,7 @@ import kr.it.acfourd.knda_check.attendance.AttendanceRepository;
 import kr.it.acfourd.knda_check.attendance.AttendanceResult;
 import kr.it.acfourd.knda_check.attendance.DailyAttendance;
 import kr.it.acfourd.knda_check.common.ClassCode;
+import kr.it.acfourd.knda_check.dashboard.DashboardView.CalendarView;
 import kr.it.acfourd.knda_check.dashboard.DashboardView.DayView;
 import kr.it.acfourd.knda_check.dashboard.DashboardView.PeriodView;
 import kr.it.acfourd.knda_check.dashboard.DashboardView.SickLeave;
@@ -49,8 +50,9 @@ public class StudentDashboardService {
                                 .orElseThrow(() -> new IllegalArgumentException("수강생을 찾을 수 없습니다: " + studentId));
                 List<UnitPeriod> periods = unitPeriods.findByClassCodeOrderByPeriodNo(student.getClassCode());
 
-                // 확정된 훈련일 출결만 사용한다. 미확정 행은 계산에도 화면에도 쓰지 않는다.
-                List<Attendance> confirmed = attendances.findAllByStudentId(studentId).stream()
+                List<Attendance> all = attendances.findAllByStudentId(studentId);
+                // 기존 계산과 일별 상세에는 확정된 훈련일 출결만 사용한다.
+                List<Attendance> confirmed = all.stream()
                                 .filter(Attendance::isConfirmed)
                                 .filter(a -> a.getTrainingDay().isTrainingDay())
                                 .toList();
@@ -90,10 +92,23 @@ public class StudentDashboardService {
                                 .map(d -> d.format(FULL))
                                 .orElse(null);
 
+                // 달력은 이미 읽은 훈련일 출결을 재사용하고, 미확정 행도 함께 표시한다.
+                Map<String, List<DailyAttendance>> calendarRows = all.stream()
+                                .filter(a -> a.getTrainingDay().isTrainingDay())
+                                .collect(Collectors.groupingBy(a -> a.getTrainingDay().getUnitPeriod().getId(),
+                                                Collectors.mapping(Attendance::toDaily, Collectors.toList())));
+                List<CalendarView> calendars = periods.stream()
+                                .map(p -> AttendanceCalendar.build(p.getId(),
+                                                p.getPeriodNo() + "차 · " + p.getStartDate().format(SHORT)
+                                                                + " ~ " + p.getEndDate().format(SHORT),
+                                                p.getId().equals(latestPeriodId), p.getStartDate(), p.getEndDate(),
+                                                calendarRows.getOrDefault(p.getId(), List.of())))
+                                .toList();
+
                 return new DashboardView(student.getId(), student.getName(), className(student.getClassCode()),
                                 !confirmed.isEmpty(), asOf, ACTIVE.equals(student.getEnrollmentStatus()),
                                 overall, current, periodViews, new SickLeave(sickUsed, student.getSickLeaveLimit()),
-                                days);
+                                days, calendars);
         }
 
         private PeriodView periodView(UnitPeriod p, List<Attendance> rows) {

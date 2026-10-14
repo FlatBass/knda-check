@@ -95,5 +95,22 @@
         지각·조퇴·외출 누적 3회 = 결석 1일</p>
 </details>
 
+<!-- 날짜별 기호를 주 단위로 배치한다. 훈련 주말이 있으면 일곱 칸으로 표시한다. -->
+<div class="cal-period" th:fragment="calendar(c)">
+    <h3 class="cal-title" th:text="${c.title()}">2차 · 9/18 ~ 10/17</h3>
+    <div class="cal-weekdays" th:style="'grid-template-columns: repeat(' + ${c.columns()} + ', 1fr)'">
+        <span th:each="weekday : ${c.weekdays()}" th:text="${weekday}">월</span>
+    </div>
+    <div class="cal-week" th:each="week : ${c.weeks()}"
+         th:style="'grid-template-columns: repeat(' + ${c.columns()} + ', 1fr)'">
+        <div class="cal-cell" th:each="cell : ${week}" th:classappend="${cell.kind()}"
+             role="img" th:aria-label="${cell.label()}" th:title="${cell.label()}"
+             th:attr="aria-hidden=${cell.kind() == 'blank'} ? 'true' : null">
+            <span class="cal-day" th:text="${cell.dayText()}">21</span>
+            <span class="cal-symbol" th:text="${cell.symbol()}">○</span>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>

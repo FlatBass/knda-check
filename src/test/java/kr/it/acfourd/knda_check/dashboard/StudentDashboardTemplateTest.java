@@ -2,6 +2,8 @@ package kr.it.acfourd.knda_check.dashboard;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
@@ -154,6 +156,54 @@ class StudentDashboardTemplateTest {
         var view = load(List.of(period(2)), List.of());
         String html = render(view);
         assertThat(html).contains("아직 확정된 출결이 없습니다.").doesNotContain("class=\"event-summary conversion-summary\"");
+    }
+
+    @Test
+    void 달력은_미확정도_표시하고_비훈련일은_제외하며_기존조회만_사용한다() {
+        var period = period(2);
+        var rows = rows(period, 0, 0, 0);
+        rows.get(0).apply(true, false, 0, 0, 0, false, false, null, null);
+        when(rows.get(13).getTrainingDay().isTrainingDay()).thenReturn(false);
+        var view = load(List.of(period), rows);
+        var calendar = view.calendars().get(0);
+
+        assertThat(calendar.current()).isTrue();
+        assertThat(calendar.title()).isEqualTo("2차 · 9/1 ~ 9/28");
+        assertThat(calendar.weeks().stream().flatMap(List::stream).toList()).contains(
+                new DashboardView.CellView("pending", "9/1", "·", "9월 1일 아직 반영되지 않음"),
+                new DashboardView.CellView("off", "14", "", "9월 14일 훈련 없음"));
+        assertThat(view.current().stats().confirmedDays()).isEqualTo(12);
+        assertThat(view.days()).hasSize(12);
+
+        String html = render(view);
+        assertThat(html.indexOf(">출석 확인표</h2>")).isLessThan(html.indexOf("병결 사용 (전체 과정 기준)"));
+        assertThat(html).contains("aria-label=\"9월 1일 아직 반영되지 않음\"", "title=\"9월 1일 아직 반영되지 않음\"",
+                "class=\"cal-cell pending\"", "class=\"cal-cell off\"")
+                .doesNotContain("class=\"cal-others\"");
+        verify(attendances).findAllByStudentId("T001");
+        verify(students).findById("T001");
+        verify(periods).findByClassCodeOrderByPeriodNo(ClassCode.PORT);
+        verifyNoMoreInteractions(attendances, students, periods);
+    }
+
+    @Test
+    void 현재기간만_바로_보이고_다른기간은_접힌영역에_표시한다() {
+        var first = period(1);
+        var second = period(2);
+        var rows = rows(first, 0, 0, 0);
+        rows.addAll(rows(second, 0, 0, 0));
+        var view = load(List.of(first, second), rows);
+        assertThat(view.calendars()).extracting(DashboardView.CalendarView::current).containsExactly(false, true);
+
+        String html = render(view);
+        int detailsStart = html.indexOf("<details class=\"cal-others\">");
+        int detailsEnd = html.indexOf("</details>", detailsStart);
+        String others = html.substring(detailsStart, detailsEnd);
+        String current = html.substring(html.indexOf("<section class=\"card attendance-calendar\">"), detailsStart);
+        assertThat(current).contains("<h3 class=\"cal-title\">2차 · 9/1 ~ 9/28</h3>")
+                .doesNotContain("<h3 class=\"cal-title\">1차");
+        assertThat(others).contains("<summary>다른 단위기간 보기</summary>", "<h3 class=\"cal-title\">1차 · 8/1 ~ 8/28</h3>")
+                .doesNotContain("<h3 class=\"cal-title\">2차", " open");
     }
 
     UnitPeriod period(int number) {
