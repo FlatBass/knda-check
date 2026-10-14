@@ -14,7 +14,15 @@ public record DashboardView(
         PeriodView current, // 가장 최근 확정 출결이 속한 단위기간, 없으면 null
         List<PeriodView> periods,
         SickLeave sickLeave,
-        List<DayView> days) {
+        List<DayView> days,
+        List<CalendarView> calendars) {
+
+    public record CalendarView(String periodId, String title, boolean current, int columns,
+            List<String> weekdays, List<List<CellView>> weeks) {
+    }
+
+    public record CellView(String kind, String dayText, String symbol, String label) {
+    }
 
     public record Stats(
             int confirmedDays, int creditedDays, int extraAbsences, int finalCreditedDays,
